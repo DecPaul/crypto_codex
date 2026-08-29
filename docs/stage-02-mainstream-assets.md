@@ -93,6 +93,8 @@
 
 ### 课次 3：BTC 的 PoW、供给与风险（75 分钟）
 
+**详细讲义**：[`lessons/stage-02/lesson-03-btc-pow-supply-risks.md`](lessons/stage-02/lesson-03-btc-pow-supply-risks.md)
+
 **核心问题**：网络怎样决定有效历史，BTC 又怎样进入流通？
 
 **必学内容**：
@@ -107,6 +109,8 @@
 
 ### 课次 4：Ethereum、ETH 与账户模型（60 分钟）
 
+**详细讲义**：[`lessons/stage-02/lesson-04-ethereum-eth-accounts.md`](lessons/stage-02/lesson-04-ethereum-eth-accounts.md)
+
 **核心问题**：为什么 Ethereum 被描述为可编程的状态机，而不只是转账网络？
 
 **必学内容**：
@@ -119,6 +123,8 @@
 **输出**：做一张 BTC 与 ETH 的“网络、原生资产、交易模型、主要用途”四格对照表。
 
 ### 课次 5：EVM、智能合约与 token（75 分钟）
+
+**详细讲义**：[`lessons/stage-02/lesson-05-evm-smart-contracts-tokens.md`](lessons/stage-02/lesson-05-evm-smart-contracts-tokens.md)
 
 **核心问题**：链上程序能做什么，不能保证什么？
 
@@ -138,6 +144,8 @@
 
 ### 课次 6：Gas、费用与二层网络（60～75 分钟）
 
+**详细讲义**：[`lessons/stage-02/lesson-06-ethereum-gas-layer2.md`](lessons/stage-02/lesson-06-ethereum-gas-layer2.md)
+
 **核心问题**：为什么同样是转账，不同操作的费用差异很大？
 
 **必学内容**：
@@ -156,6 +164,8 @@
 
 ### 课次 7：PoS、ETH 供给与风险（75 分钟）
 
+**详细讲义**：[`lessons/stage-02/lesson-07-ethereum-pos-supply-risks.md`](lessons/stage-02/lesson-07-ethereum-pos-supply-risks.md)
+
 **核心问题**：Ethereum 如何用质押和惩罚保护共识？
 
 **必学内容**：
@@ -168,6 +178,8 @@
 **输出**：完成 ETH 七维分析卡，并写出 PoW 与 PoS 各自要求攻击者付出的资源和可能受到的惩罚。
 
 ### 课次 8：稳定币分类与稳定机制（75 分钟）
+
+**详细讲义**：[`lessons/stage-02/lesson-08-stablecoin-models.md`](lessons/stage-02/lesson-08-stablecoin-models.md)
 
 **核心问题**：稳定币的“稳定”由什么资产、承诺和机制支撑？
 
@@ -182,6 +194,8 @@
 **输出**：画出三类稳定机制的“支撑来源 → 铸造/赎回 → 失效条件”图。
 
 ### 课次 9：USDT 与 USDC 的尽调方法（75～90 分钟）
+
+**详细讲义**：[`lessons/stage-02/lesson-09-usdt-usdc-due-diligence.md`](lessons/stage-02/lesson-09-usdt-usdc-due-diligence.md)
 
 **核心问题**：阅读发行方网页时，怎样从营销表述走到可核验问题？
 
@@ -205,6 +219,8 @@
 
 ### 课次 10：脱锚、链与跨链风险（75 分钟）
 
+**详细讲义**：[`lessons/stage-02/lesson-10-depeg-chain-bridge-risks.md`](lessons/stage-02/lesson-10-depeg-chain-bridge-risks.md)
+
 **核心问题**：同一个稳定币名称为什么可能对应不同风险？
 
 **必学内容**：
@@ -220,6 +236,8 @@
 对“某稳定币跌到 0.97 美元”“交易所暂停该链充值”“同名 token 合约地址不同”三个情景，各写：先核对什么、不要做什么、最坏结果是什么。
 
 ### 课次 11：横向比较与情景题（75 分钟）
+
+**详细讲义**：[`lessons/stage-02/lesson-11-cross-asset-comparison.md`](lessons/stage-02/lesson-11-cross-asset-comparison.md)
 
 把前三张七维卡合并成下表，不允许填“价格高/低”或“以后会涨”：
 
@@ -243,6 +261,8 @@
 情景题不是让你选择买什么，而是练习把用途映射到技术与信任假设。
 
 ### 课次 12：结业任务与测验（90 分钟）
+
+**详细讲义**：[`lessons/stage-02/lesson-12-capstone-assessment.md`](lessons/stage-02/lesson-12-capstone-assessment.md)
 
 **必做输出**：
 
