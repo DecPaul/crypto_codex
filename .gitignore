@@ -1,0 +1,42 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.seed
+*.wallet
+wallet-backup*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# JavaScript / TypeScript
+node_modules/
+.npm/
+.pnpm-store/
+coverage/
+
+# Generated output
+build/
+dist/
+tmp/
+*.log
+
+# Codex local logs
+.codex-log/
