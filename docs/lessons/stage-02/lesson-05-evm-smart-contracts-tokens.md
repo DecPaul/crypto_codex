@@ -1,6 +1,6 @@
 # 课次 5：EVM、智能合约与 token
 
-资料核对日期：2026-08-29
+资料核对日期：2026-08-30
 
 建议用时：75 分钟
 
@@ -148,6 +148,113 @@ flowchart LR
 
 选择一个发行方官网能直接链接到官方合约地址的知名 ERC-20。不要只按浏览器搜索结果选择同名 token。
 
+下面以 Ethereum 主网上的 USDC 为例。整个过程只观察公开数据，不连接钱包，不使用自己的地址，也不执行任何交易。
+
+### 第一步：从发行方官网取得地址
+
+打开 [Circle 官方 USDC 合约地址页面](https://developers.circle.com/stablecoins/usdc-contract-addresses)，找到 Mainnet 表格中的 Ethereum。资料核对时，Circle 公布的地址为：
+
+```text
+0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+```
+
+先从发行方官网取得地址，再将完整地址交给区块浏览器。不要直接搜索“USDC”后选择名称或图标相同的结果，因为任何人都能创建同名、同 symbol 的 token。
+
+### 第二步：在 Etherscan 打开合约
+
+打开 [Etherscan 上的 Ethereum USDC 页面](https://etherscan.io/token/0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48)，核对：
+
+- 网络是 Ethereum Mainnet；
+- 页面地址与 Circle 公布的地址逐字符相同；
+- token 名称和 symbol 是 USD Coin / USDC；
+- decimals 是 6。
+
+不要只核对地址开头和结尾。大小写差异可能只是校验和格式不同，但 40 个十六进制字符的内容必须一致。
+
+### 第三步：判断源码验证和代理结构
+
+进入 `Contract` → `Code`，查找 `Contract Source Code Verified`、`Exact Match` 或绿色验证标记。
+
+USDC 页面还会显示 `Proxy` 和 `Implementation`：用户访问的是代理合约地址，代理把调用转给实现合约中的业务逻辑。观察代理合约时，应同时意识到管理员可能有升级实现的能力。
+
+“源码已验证”只表示公开源码与链上字节码通过浏览器的匹配检查，不代表：
+
+- 代码没有漏洞；
+- 合约已经通过安全审计；
+- 管理员不能升级、暂停、冻结或增发；
+- token 一定有足额资产支持。
+
+### 第四步：查询 Read 函数
+
+进入 `Contract` → `Read as Proxy`；其他合约也可能显示为 `Read Contract`。展开函数并点击 `Query` 即可查询。只读查询不会修改链上状态，不需要连接钱包。
+
+重点识别：
+
+- `name()`：token 名称；
+- `symbol()`：token symbol；
+- `decimals()`：金额显示时使用的小数位数；
+- `totalSupply()`：当前供应量；
+- `balanceOf(address)`：指定地址的 token 余额；
+- `allowance(owner, spender)`：`owner` 给 `spender` 的剩余代花额度；
+- `paused()`：如果合约提供该函数，用于查询相关功能是否处于暂停状态。
+
+合约通常以整数保存金额。USDC 的 `decimals` 是 6，所以查询结果按下面方式换算：
+
+```text
+显示金额 = 原始整数 ÷ 10^6
+```
+
+例如原始值 `1000000` 表示 `1 USDC`。`totalSupply()` 会随发行和赎回变化，记录结果时必须同时记录查询日期和时区。
+
+如果要练习 `balanceOf(address)`，可以从 USDC 页面最近一笔公开转账中选择发送方或接收方地址。不要输入自己的地址，也不要使用任何私钥、助记词或钱包备份。
+
+### 第五步：识别 Write 函数，但不执行
+
+进入 `Contract` → `Write as Proxy`；其他合约也可能显示为 `Write Contract`。只观察函数名称和参数，不点击 `Connect to Web3`，不提交调用。
+
+常见 Write 函数包括：
+
+- `transfer`：转移调用者持有的 token；
+- `approve`：设置另一个地址或合约的代花额度；
+- `transferFrom`：在已有授权范围内代为转移；
+- `increaseAllowance` / `decreaseAllowance`：调整授权额度；
+- `mint` / `burn`：增发或销毁，通常受权限或业务规则控制；
+- `pause` / `unpause`：暂停或恢复某些功能，通常只有特定角色可以调用。
+
+Write 函数会尝试改变链上状态，通常需要连接钱包、签名、提交交易并支付 Gas。页面展示某个函数，不表示任何人都有权限成功调用它。
+
+### 第六步：观察代理和管理员信息
+
+查找 `Proxy`、`Implementation`、`Admin`、`Owner` 和 `Contract Creator` 等信息，注意它们并不等价：
+
+- `Proxy` 是用户长期访问的入口合约；
+- `Implementation` 保存代理当前委托执行的业务逻辑；
+- `Admin` 可能拥有代理升级权限；
+- `Owner` 是业务合约定义的所有者角色，未必是代理管理员；
+- `Contract Creator` 是最初部署合约的地址，不代表它现在仍拥有管理权限。
+
+浏览器标签只是调查线索。要判断某个角色究竟能做什么，还需要结合已验证源码、角色查询结果和历史交易。
+
+### 第七步：查看一条 Transfer 事件
+
+回到 token 页面的 `Transfers` 列表，选择任意一笔公开转账并点击 `Txn Hash`，然后在交易详情中查看 `Logs`。浏览器通常会将下面的事件解码为 `from`、`to` 和 `value`：
+
+```solidity
+Transfer(address indexed from, address indexed to, uint256 value)
+```
+
+- `from`：token 从哪个地址扣除；
+- `to`：token 增加到哪个地址；
+- `value`：未换算 decimals 的原始整数金额。
+
+`Transfer` 是一笔交易执行时产生的事件日志，不是另一笔独立交易。一笔复杂交易可以产生多条 `Transfer`。如果 `from` 是零地址，通常表示铸造；如果 `to` 是零地址，通常表示销毁，但最终仍要结合合约实现判断。
+
+### 第八步：区分链上事实和第三方标签
+
+可以从链上或合约调用直接核验的信息包括合约地址、交易哈希、区块高度、调用地址、Gas、字节码、事件日志和函数返回值。
+
+价格、市值、Logo、项目简介、社交链接、风险评分以及“某交易所”“某项目金库”等地址名称，通常由浏览器或外部数据源整理。它们有参考价值，但不是 Ethereum 协议对项目身份或安全性的证明。
+
 记录：
 
 ```markdown
@@ -158,12 +265,33 @@ flowchart LR
 - 网络：
 - 合约地址（公开示例，不是本人地址）：
 - token 名称与 symbol：
+- decimals：
 - 浏览器是否显示源码已验证：是 / 否 / 不确定
 - 能识别的 Read 函数：
 - 能识别的 Write 函数：
 - 是否看到代理或管理员标签：
 - Transfer 事件说明了什么：
 - 浏览器标签中哪些只是第三方信息：
+- 我没有执行的操作：Connect / Write / Approve / Sign
+```
+
+USDC 示例可以记录为：
+
+```markdown
+### 2026-08-30｜课次 5：ERC-20 合约只读观察
+
+- 核对时间及时区：2026-08-30，Asia/Shanghai
+- 发行方或项目官方合约地址来源：https://developers.circle.com/stablecoins/usdc-contract-addresses
+- 网络：Ethereum Mainnet
+- 合约地址（公开示例，不是本人地址）：0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+- token 名称与 symbol：USD Coin / USDC
+- decimals：6
+- 浏览器是否显示源码已验证：是；页面同时显示代理和实现合约信息
+- 能识别的 Read 函数：name、symbol、decimals、totalSupply、balanceOf、allowance、paused
+- 能识别的 Write 函数：transfer、approve、transferFrom，以及带权限控制的管理函数
+- 是否看到代理或管理员标签：看到了 Proxy 和 Implementation；标签本身不能证明具体权限
+- Transfer 事件说明了什么：记录 token 从 from 地址转移到 to 地址，value 是未换算 decimals 的原始整数
+- 浏览器标签中哪些只是第三方信息：美元价格、市值、Logo、项目简介、网站链接和地址名称标签
 - 我没有执行的操作：Connect / Write / Approve / Sign
 ```
 
@@ -227,3 +355,4 @@ flowchart LR
 - [Ethereum 官方文档：与智能合约交互](https://ethereum.org/developers/docs/smart-contracts/interacting/)
 - [ERC-20 标准（EIP-20）](https://eips.ethereum.org/EIPS/eip-20)
 - [Ethereum 官方文档：交易](https://ethereum.org/developers/docs/transactions/)
+- [Circle 官方文档：USDC 合约地址](https://developers.circle.com/stablecoins/usdc-contract-addresses)
