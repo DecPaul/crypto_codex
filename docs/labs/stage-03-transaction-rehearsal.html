@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第三阶段｜离线交易确认演练</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172026; background: #f3f6f5; }
+    body { max-width: 760px; margin: 0 auto; padding: 28px 18px 48px; line-height: 1.6; }
+    h1 { margin-bottom: 6px; }
+    .notice, .panel { background: #fff; border: 1px solid #d8e0dc; border-radius: 12px; padding: 18px; margin: 18px 0; }
+    .notice { border-color: #c8a841; background: #fff9df; }
+    .grid { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr); gap: 12px; align-items: center; }
+    label { font-weight: 650; }
+    select, input, button { font: inherit; padding: 9px 10px; border-radius: 8px; border: 1px solid #aab8b1; }
+    input[readonly] { background: #f1f4f2; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    button { cursor: pointer; background: #fff; }
+    button.primary { background: #176b50; color: #fff; border-color: #176b50; }
+    button.danger { color: #9a2424; border-color: #c77777; }
+    #result { min-height: 54px; white-space: pre-line; }
+    .ok { color: #0d6548; font-weight: 650; }
+    .warn { color: #8a5300; font-weight: 650; }
+    .bad { color: #a02020; font-weight: 650; }
+    small { color: #52605a; }
+  </style>
+</head>
+<body>
+  <h1>离线交易确认演练</h1>
+  <p>目标：练习在点“确认”前看懂请求。此页面完全在本机浏览器内运行。</p>
+
+  <div class="notice">
+    <strong>安全声明：</strong>本页不会连接钱包、不会读取或生成助记词/私钥、不会请求签名，也不会广播任何交易。所有名称、金额和结果都是演练数据。
+  </div>
+
+  <div class="panel">
+    <div class="grid">
+      <label for="network">网络</label>
+      <select id="network">
+        <option value="sepolia">Sepolia（测试网）</option>
+        <option value="mainnet">Ethereum Mainnet（主网）</option>
+      </select>
+
+      <label for="sender">发起账户</label>
+      <input id="sender" value="练习账户 A" readonly>
+
+      <label for="recipient">接收方</label>
+      <select id="recipient">
+        <option value="b">练习账户 B</option>
+        <option value="unknown">陌生地址</option>
+      </select>
+
+      <label for="action">请求类型</label>
+      <select id="action">
+        <option value="transfer">普通测试 ETH 转账</option>
+        <option value="approve">Token approve（授权）</option>
+        <option value="permit">permit（签名授权）</option>
+        <option value="data">未知合约 data</option>
+      </select>
+
+      <label for="amount">金额 / 授权额度</label>
+      <input id="amount" value="0.001 测试 ETH" readonly>
+    </div>
+
+    <div class="buttons">
+      <button type="button" id="good">载入正确情景</button>
+      <button type="button" id="bad">载入一个错误情景</button>
+      <button type="button" id="check">检查请求</button>
+      <button type="button" class="danger" id="reject">拒绝</button>
+      <button type="button" class="primary" id="confirm">模拟确认</button>
+    </div>
+  </div>
+
+  <div class="panel" aria-live="polite">
+    <strong>检查结果</strong>
+    <div id="result">先载入一个情景，然后点“检查请求”。</div>
+    <small>确认条件只有一个：Sepolia、练习账户 A、练习账户 B、普通测试 ETH 转账、少量测试 ETH。其余情况一律拒绝并查明原因。</small>
+  </div>
+
+  <script>
+    const network = document.querySelector('#network');
+    const recipient = document.querySelector('#recipient');
+    const action = document.querySelector('#action');
+    const amount = document.querySelector('#amount');
+    const result = document.querySelector('#result');
+    const badCases = [
+      { network: 'mainnet', recipient: 'b', action: 'transfer', amount: '0.001 ETH（主网资产）', reason: '这是主网，不是 Sepolia 测试网。' },
+      { network: 'sepolia', recipient: 'unknown', action: 'transfer', amount: '0.001 测试 ETH', reason: '接收方不是练习账户 B。' },
+      { network: 'sepolia', recipient: 'unknown', action: 'approve', amount: '无限额度', reason: '这是授权请求，不是简单转账。' },
+      { network: 'sepolia', recipient: 'unknown', action: 'permit', amount: '无限额度', reason: '这是签名授权，不是简单转账。' },
+      { network: 'sepolia', recipient: 'unknown', action: 'data', amount: '未知', reason: '请求包含无法理解的合约数据。' }
+    ];
+    let badIndex = 0;
+
+    function setScenario(item) {
+      network.value = item.network;
+      recipient.value = item.recipient;
+      action.value = item.action;
+      amount.value = item.amount;
+    }
+
+    function isSafeScenario() {
+      return network.value === 'sepolia' && recipient.value === 'b' && action.value === 'transfer' && amount.value === '0.001 测试 ETH';
+    }
+
+    document.querySelector('#good').addEventListener('click', () => {
+      setScenario({ network: 'sepolia', recipient: 'b', action: 'transfer', amount: '0.001 测试 ETH' });
+      result.className = '';
+      result.textContent = '已载入正确情景。现在逐项检查，不要凭按钮颜色决定。';
+    });
+
+    document.querySelector('#bad').addEventListener('click', () => {
+      const item = badCases[badIndex++ % badCases.length];
+      setScenario(item);
+      result.className = 'warn';
+      result.textContent = '已载入错误情景。你能找出问题吗？';
+    });
+
+    document.querySelector('#check').addEventListener('click', () => {
+      const checks = [
+        `网络：${network.value === 'sepolia' ? 'Sepolia（正确）' : 'Ethereum Mainnet（错误）'}`,
+        '发起账户：练习账户 A（正确）',
+        `接收方：${recipient.value === 'b' ? '练习账户 B（正确）' : '陌生地址（错误）'}`,
+        `请求类型：${action.value === 'transfer' ? '普通测试 ETH 转账（正确）' : '不是普通转账（错误）'}`,
+        `金额 / 额度：${amount.value}`,
+        '结论：只要有一项错误或看不懂，就拒绝。'
+      ];
+      const safe = isSafeScenario();
+      result.className = safe ? 'ok' : 'bad';
+      result.textContent = checks.join('\n') + (safe ? '\n可以进行“模拟确认”。' : '\n本情景应当拒绝。');
+    });
+
+    document.querySelector('#reject').addEventListener('click', () => {
+      result.className = 'ok';
+      result.textContent = '已拒绝。本地演练没有发出签名或交易。拒绝是正确的安全操作。';
+    });
+
+    document.querySelector('#confirm').addEventListener('click', () => {
+      if (!isSafeScenario()) {
+        result.className = 'bad';
+        result.textContent = '不能模拟确认：这个情景不是“Sepolia 的 A → B 少量普通测试 ETH 转账”。应当拒绝。';
+        return;
+      }
+      result.className = 'ok';
+      result.textContent = '已完成本地演练。没有连接钱包、没有生成密钥、没有签名，也没有广播交易。';
+    });
+  </script>
+</body>
+</html>
